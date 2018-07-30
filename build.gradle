@@ -1,0 +1,85 @@
+//for plugins registered on https://plugins.gradle.org use the plugins block
+plugins {
+    id 'java' //no version since uses gradle version
+    id "org.gretty" version "2.2.0"
+}
+
+group 'nfjs.com'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+//repositories is a method that takes in a closure, which is a method call to mavenCentral()-- groovy
+//in groovy if it does not find the method then it looks for a delegate of the repositories{} block which is- RepositoryHandler
+//https://docs.gradle.org/current/dsl/org.gradle.api.Project.html#org.gradle.api.Project:repositories(groovy.lang.Closure)
+// https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.dsl.RepositoryHandler.html
+repositories {
+    mavenLocal() //to look into local maven cache
+    mavenCentral()
+}
+
+dependencies {
+    //java plugin gives the options compile/ testCompile... and it adds it to the it also specifies the src directories
+    //https://docs.gradle.org/current/userguide/java_plugin.html#tab:configurations
+    //compile is not deprecated in favor of implementation and api check- https://docs.gradle.org/current/userguide/java_library_plugin.html
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+//if you want to use junit 5 and not include a plugin
+//https://docs.gradle.org/current/javadoc/org/gradle/api/tasks/testing/Test.html
+test {
+    useJUnitPlatform()
+}
+
+//adhoc custom task
+task hello {
+
+    // all these run for all tasks and is global
+    description 'just a hello task'
+    group 'Doc'
+    println 'runs at configuration time'
+
+    doLast {
+        //runs execution time of this task hello
+    }
+
+    doFirst {
+        //runs execution time of this task hello
+    }
+}
+
+//run ./gradlew --all to see this anonymous tasks under 'Other'
+task hi(type:Greeting)
+
+task whatUp(type:Greeting) {
+
+    //checkout these as well-
+        //mustRunAfter
+        //shouldRunAfter
+        //finalizedBy
+        //dependsOn
+    dependsOn hi
+
+    user = 'yoyo'
+
+    doLast {
+        "Just greeted $user"
+    }
+
+    doFirst {
+        "About to greet $user"
+    }
+}
+
+class Greeting extends DefaultTask {
+    String user ="World"
+
+    //this runs execution time
+    @TaskAction
+    void sayHello() {
+        println "Hello $user!"
+    }
+}
+
+//test with ./gradlew build -m
+build.dependsOn 'whatUp'
